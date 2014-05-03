@@ -2,7 +2,7 @@
     right: 10px;
     position: fixed;
     border: solid black 1px;
-    background-color: lightgoldenrodyellow;
+    background-color: #BBB;
     padding: 5px;
     width: 300px;
 }
@@ -14,8 +14,39 @@
 
 .bs {
     background-color: lightgoldenrodyellow;
+   
 }
 
 #buttons
 {position: fixed;
 top:50px;}
+
+
+#slider {
+  width: 500px;
+}
+
+.scontainer {
+    margin-top: 100px;
+}
+
+.progress-bar{
+	 
+
+}
+
+.sarticle{
+padding-bottom: 50px;
+}
+
+.col-md-6 .progress{
+	padding:none;
+	float:none;}
+
+.skipper{
+	width:100%;
+}
+
+#bsl{
+	float:left;
+}

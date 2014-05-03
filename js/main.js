@@ -152,18 +152,22 @@ function applyBullshit(bs) {
   if (bs.responseJSON) {
     bs.responseJSON.map(function(x) {
       // var obj = $(x.path);
-      console.log(x);
+     // console.log(x);
       var res = document.evaluate(x.xpath, document, null, XPathResult.ANY_TYPE, null );
       var obj = res.iterateNext();
-      console.log(obj);
-      console.log(x.parHash, crc32(obj.innerHTML));
+       console.log(obj.innerHTML);
+      //console.log(x.parHash, crc32(obj.innerHTML));
+
       if (x.parHash == crc32(obj.innerHTML)) {
-        console.log(x.reason);
+      //  console.log(x.reason);
         obj.innerHTML = '<span class="bs" title="BULLSHIT! Here\'s why:' + x.reason +'">' + obj.innerHTML + '</span>'
       }
     });
     // enable tooltips
-    $('span.bs').tooltip();
+    $('span.bs').tooltip({
+      
+    });
+
   }
 }
 
@@ -173,14 +177,33 @@ var stringArray=[];
 var nodeArr=[];
  
 var bsApplier;
-var buttons = $($.parseHTML('<div id="buttons"> <h3>Bullshit selection</h3> Make a selection in the document on the left and hit Bullshit to mark it as bullshit: '+
- ' <br> <input title="BULLSHIT!" type="button" disabled id="bsButton" value="BULLSHIT!" unselectable="on" class="unselectable">'+
- '<br> <input type="button" id="allSelection" value="Sel"> </div>'));
+var buttons = $($.parseHTML(''+
+  '<div id="buttons"> <h3>Bullshit selection</h3> Make a selection in the document on the left and hit Bullshit to mark it as bullshit: '+
+  '<input type="text" class="form-control" placeholder="Comment">'+
+ ' <br> <input title="BULLSHIT!" type="button" disabled id="bsButton" value="BULLSHIT!" unselectable="on" class="btn btn-danger unselectable">'+
+ '<br>   <div class="scontainer"> <div class="span6 offset3">  <div id="slider"></div> </div></div> '+
+ ''+
+ '  </div>'));
 
 
 
 
-
+    function repositionTooltip( e, ui ){
+            var div = $(ui.handle).data("tooltip").$tip[0];
+            var pos = $.extend({}, $(ui.handle).offset(), { width: $(ui.handle).get(0).offsetWidth,
+                                                            height: $(ui.handle).get(0).offsetHeight
+                      });
+            
+            var actualWidth = div.offsetWidth;
+            
+            tp = {left: pos.left + pos.width / 2 - actualWidth / 2}            
+            $(div).offset(tp);
+            
+            $(div).find(".tooltip-inner").text( ui.value );        
+    }
+        
+    $("#slider").slider({ value: 15, slide: repositionTooltip, stop: repositionTooltip });
+    $("#slider .ui-slider-handle:first").tooltip( {title: $("#slider").slider("value"), trigger: "manual"}).tooltip("show");
 
 
 
@@ -191,23 +214,17 @@ $( document ).ready(function() {
  
 var titles=dummy.response.results;
 
+$('.bsLevel').append('<div class=""><div class="progress col-sm-6">'+
+ ' <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%">'+
+    '<span class="sr-only">80% Complete</span>'+
+ ' </div></div> ' );  
+
 for (i=0;i<titles.length;i++){
+
 $('.storyContainer').append('<p>'+titles[i].webTitle+ '</p>'); 
 }
 
- 
-
-    $('#sendFeedback').on('click', function(){
-      $( '.selectedString' ).each(function( index ) {
-     // console.log( index + ": " + $( this ).text() );
-        });
-
-     // console.log(stringArray);
-
-    })
- 
- 
-
+  
 
 
 
@@ -254,7 +271,7 @@ rangy.init();
     bsButton.ontouchstart = bsButton.onmousedown = function() {
        var sel = rangy.getSelection();
        var whosYourDaddy = sel.anchorNode.parentNode;
-       console.log(whosYourDaddy);
+        console.log(whosYourDaddy);
 
        var offset= (sel.anchorOffset);
        var endOffset = (sel.focusOffset);
