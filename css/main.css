@@ -1,0 +1,21 @@
+#buttons {
+    right: 10px;
+    position: fixed;
+    border: solid black 1px;
+    background-color: lightgoldenrodyellow;
+    padding: 5px;
+    width: 300px;
+}
+
+.selectedString
+{
+	color:red;
+}
+
+.bs {
+    background-color: lightgoldenrodyellow;
+}
+
+#buttons
+{position: fixed;
+top:50px;}
