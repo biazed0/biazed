@@ -98,3 +98,10 @@ p#bs1{
 	width: 150px;
 
 }
+.bsl{float:left;}
+.bsLevel {float:left;}
+
+.biasLevel {
+
+ 	float:none;
+ }

@@ -310,6 +310,7 @@ $( document ).ready(function() {
    $('#ratingButton').click(function(){
      sendUserRating($( "#slider" ).slider( "value" )); 
      console.log($( "#slider" ).slider( "value" ));
+
    });
     
 
@@ -319,13 +320,13 @@ var titles=dummy.response.results;
 
 //
 var bias = getBiasAverage();
- 
+ var biasPercent = (bias*100)/5;
 // PROGRESS BAR
 
-$('.bsLevel').append('<div class=""><div class="progress col-sm-6">'+
- ' <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width:  '+((bias*100)/5 )+'%">'+
+$('.bsLevel').append('<div class="progress">'+
+ ' <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width:  '+biasPercent+'%;background-color: rgba(255, 0, 0, '+(biasPercent/100)+');">'+
     '<span class="sr-only">80% Complete</span>'+
- ' </div></div> ' );  
+ '</div></div></div>'  );  
 
 // DUMMY DATA ADD
 
