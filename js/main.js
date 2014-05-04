@@ -104,11 +104,7 @@ var dummy = {
 };
 
 
-
-function toggleBsInputFields() {
-  $('#extrabuttons').toggle()
-}
-
+ 
 function toggleBsApplier() {
   bsApplier.toggleSelection();
 }
@@ -134,6 +130,13 @@ function bsSelection() {
 
 }
 
+
+function partition(str, index) {
+  return [str.substring(0, index), str.substring(index)];
+}
+
+
+
 function getBullshit() {
   return $.ajax({
     url: 'http://petardo.dk:8080/query?col=bs',
@@ -157,10 +160,33 @@ function applyBullshit(bs) {
       var obj = res.iterateNext();
        //console.log(obj.innerHTML);
       //console.log(x.parHash, crc32(obj.innerHTML));
+      
+      var offBeg=x.offsetBegin;
+      var offEnd=x.offsetEnd;
+      var diff=offEnd-offBeg;
+      var commentText = x.comment;
+      //console.log(offBeg, offEnd);
 
       if (x.parHash == crc32(obj.innerHTML)) {
       //  console.log(x.reason);
-        obj.innerHTML = '<span class="bs" title="BULLSHIT! Here\'s why:' + x.reason +'">' + obj.innerHTML + '</span>'
+    // results in ["123", "abc"]
+    var myText=obj.innerText.toString();
+    var parts = partition(myText, offBeg-2);
+    var prev=parts[0];
+    var myText=parts[1];
+    parts = partition(myText, diff);
+    myText = parts[0];
+    var post = parts[1];
+
+   //console.log(prev);
+  // console.log(myText);
+  // console.log(post);
+
+    if(!commentText){
+      obj.innerHTML = prev+ '<span class="bs" title="There\'s no comment">' + myText + '</span>' + post;
+    }else
+         { obj.innerHTML = prev+ '<span class="bs" title="BIAZED! Here\'s why: ' + commentText +'">' + myText + '</span>' + post;}
+       
       }
     });
     // enable tooltips
@@ -195,45 +221,109 @@ var nodeArr=[];
  
 var bsApplier;
 var buttons = $($.parseHTML(''+
-  '<div id="buttons" class="col-md-4"> <h3>Bullshit selection</h3> Make a selection in the document on the left and hit Bullshit to mark it as bullshit: '+
-  '<input type="text" class="form-control" placeholder="Comment">'+
- ' <br> <input title="BULLSHIT!" type="button" disabled id="bsButton" value="BULLSHIT!" unselectable="on" class="btn btn-danger unselectable">'+
+  '<div id="buttons" class="col-md-4 jumbotron"> <h3>Bullshit selection</h3> Make a selection in the document on the left and hit Bullshit to mark it as bullshit: '+
+  '<input type="text" id="commentVal" class="form-control" placeholder="Comment">'+
+ ' <br> <input title="Biaz!" type="button" disabled id="bsButton" value="BIAZED!" unselectable="on" class="btn btn-danger unselectable">'+
  '<div id="sliderContainer"  >'+
   '<div id="slider" class="col-md-6"></div>'+
-  ' <button type="button" id="ratingButton" class="btn btn-primary"> Submit rating</button>'+
+  '<input  type="button" id="ratingButton" class="btn btn-primary" value="Rate"   >'+
+ 
  ' </div> </div>'));
 
+
+function getUserComment(){
+  
+ return $("#commentVal").val();
+}
  
+
+function getUserRating(){
+  
+console.log( $( "#slider" ).slider( "value" ));
+}
+
+
+//send rating function
+function sendUserRating(rating){
+
+var date = new Date();
+  $.ajax({
+        url: 'http://petardo.dk:8080/insert?col=rt',
+        type: 'POST',
+        dataType: 'JSON',
+        data: "doc=" + JSON.stringify({
+        "timestamp":date.getTime(),
+         "rating":rating,
+         "url": document.documentURI 
+        })
+      })
+        .done(function(data) {
+        // console.log(data);
+        });
+}
+
+
+function getBiasAverage(){
+var avg;
+  $.ajax({
+    url: 'http://petardo.dk:8080/query?col=rt',
+    type: 'POST',
+    async: false,
+    dataType: 'JSON',
+    data: "q=" + JSON.stringify([{
+      "eq": document.documentURI, "in": ["url"]
+    }])
+  }).done(function(data) {
+    var ratingArr = data;
+    var sum=0;
+    for(i=0;i<ratingArr.length;i++){
+      
+      sum+=ratingArr[i].rating;
+    }
+     avg =Math.round(100*sum/ratingArr.length)/100;
+    
+    return avg;
+  })
+
+ return avg;
+}
 
 //////// DOCUMENT READY FUNCTION STARTS HERE
 
-
-
-
-
 $( document ).ready(function() {
   
+// INIT RANGY
+  rangy.init();
 
+  // Enable buttons
+  $('body').prepend(buttons);
+
+  
 // SLIDER
 
    $(function() {
-      $( "#slider" ).slider({ max: 5,   
-       stop: function() {
-        console.log($( this).slider( "value" ));
-       } });
-     
+      $( "#slider" ).slider({ max: 5  }); 
     });
 
+   //SEND USER RATING
+
+   $('#ratingButton').click(function(){
+     sendUserRating($( "#slider" ).slider( "value" )); 
+     console.log($( "#slider" ).slider( "value" ));
+   });
+    
 
 // DUMMY TEXT
 
 var titles=dummy.response.results;
 
-
+//
+var bias = getBiasAverage();
+ 
 // PROGRESS BAR
 
 $('.bsLevel').append('<div class=""><div class="progress col-sm-6">'+
- ' <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%">'+
+ ' <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width:  '+((bias*100)/5 )+'%">'+
     '<span class="sr-only">80% Complete</span>'+
  ' </div></div> ' );  
 
@@ -245,12 +335,6 @@ $('.storyContainer').append('<p>'+titles[i].webTitle+ '</p>');
 }
 
   
-
-  // INIT RANGY
-  rangy.init();
-
-  // Enable buttons
-  $('body').prepend(buttons);
 
   // Get bullshit
   var bs = getBullshit();
@@ -265,19 +349,8 @@ $('.storyContainer').append('<p>'+titles[i].webTitle+ '</p>');
   // Next line is pure paranoia: it will only return false if the browser has no support for ranges,
   // selections or TextRanges. Even IE 5 would pass this test.
   if (rangy.supported && classApplierModule && classApplierModule.supported) {
-    // Hide extra buttons
-    $('#extrabuttons').toggle()
-
-    var extrabuttons = $('#extrabuttons');
-    $('*').not('#extrabuttons').mouseup(function() {
-      var selection = rangy.getSelection();
-     // console.log(selection.text());
-      if (selection.text().length > 0) {
-        extrabuttons.show();
-      }
-    });
-
-
+ 
+  
     // ADD CSS CLASS TO SELECTION
     bsApplier = rangy.createCssClassApplier("bsSelection", {
       elementTagName: "span",
@@ -295,7 +368,7 @@ $('.storyContainer').append('<p>'+titles[i].webTitle+ '</p>');
     bsButton.ontouchstart = bsButton.onmousedown = function() {
        var sel = rangy.getSelection();
        var whosYourDaddy = sel.anchorNode.parentNode;
-        //console.log(whosYourDaddy);
+        console.log(sel);
 
        var offset= (sel.anchorOffset);
        var endOffset = (sel.focusOffset);
@@ -307,9 +380,13 @@ $('.storyContainer').append('<p>'+titles[i].webTitle+ '</p>');
         offset=endOffset;
         endOffset=rep;
        }
-       console.log(offset, endOffset);
+       //console.log(offset, endOffset);
 
+    //GET COMMENTS FROM FORM
+    // Get Rating from comments
 
+    var comm= getUserComment();
+    var rate = getUserRating();
     // SEND REQUEST TO THE SERVER
 
       var hash = crc32(sel.anchorNode.parentNode.innerHTML);
@@ -320,7 +397,10 @@ $('.storyContainer').append('<p>'+titles[i].webTitle+ '</p>');
         type: 'POST',
         dataType: 'JSON',
         data: "doc=" + JSON.stringify({
+          "comment":comm,  
           "bs": sel.text(),
+          "offsetBegin": offset,
+          "offsetEnd":endOffset,
           "xpath": getElementXPath(sel.anchorNode.parentNode).replace(/\/span$/, ''),
           "reason": $('.bscomment').text(),
           "reference": $('.reflink').text(),
