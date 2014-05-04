@@ -155,7 +155,7 @@ function applyBullshit(bs) {
      // console.log(x);
       var res = document.evaluate(x.xpath, document, null, XPathResult.ANY_TYPE, null );
       var obj = res.iterateNext();
-       console.log(obj.innerHTML);
+       //console.log(obj.innerHTML);
       //console.log(x.parHash, crc32(obj.innerHTML));
 
       if (x.parHash == crc32(obj.innerHTML)) {
@@ -172,52 +172,72 @@ function applyBullshit(bs) {
 }
 
 
+function repositionTooltip( e, ui ){
+        var div = $(ui.handle).data("tooltip").$tip[0];
+        var pos = $.extend({}, $(ui.handle).offset(), { width: $(ui.handle).get(0).offsetWidth,
+                                                        height: $(ui.handle).get(0).offsetHeight
+                  });
+        
+        var actualWidth = div.offsetWidth;
+        
+        tp = {left: pos.left + pos.width / 2 - actualWidth / 2}            
+        $(div).offset(tp);
+        
+        $(div).find(".tooltip-inner").text( ui.value );        
+}
+    
+
+
+
 
 var stringArray=[];
 var nodeArr=[];
  
 var bsApplier;
 var buttons = $($.parseHTML(''+
-  '<div id="buttons"> <h3>Bullshit selection</h3> Make a selection in the document on the left and hit Bullshit to mark it as bullshit: '+
+  '<div id="buttons" class="col-md-4"> <h3>Bullshit selection</h3> Make a selection in the document on the left and hit Bullshit to mark it as bullshit: '+
   '<input type="text" class="form-control" placeholder="Comment">'+
  ' <br> <input title="BULLSHIT!" type="button" disabled id="bsButton" value="BULLSHIT!" unselectable="on" class="btn btn-danger unselectable">'+
- '<br>   <div class="scontainer"> <div class="span6 offset3">  <div id="slider"></div> </div></div> '+
- ''+
- '  </div>'));
+ '<div id="sliderContainer"  >'+
+  '<div id="slider" class="col-md-6"></div>'+
+  ' <button type="button" id="ratingButton" class="btn btn-primary"> Submit rating</button>'+
+ ' </div> </div>'));
 
+ 
 
-
-
-    function repositionTooltip( e, ui ){
-            var div = $(ui.handle).data("tooltip").$tip[0];
-            var pos = $.extend({}, $(ui.handle).offset(), { width: $(ui.handle).get(0).offsetWidth,
-                                                            height: $(ui.handle).get(0).offsetHeight
-                      });
-            
-            var actualWidth = div.offsetWidth;
-            
-            tp = {left: pos.left + pos.width / 2 - actualWidth / 2}            
-            $(div).offset(tp);
-            
-            $(div).find(".tooltip-inner").text( ui.value );        
-    }
-        
-    $("#slider").slider({ value: 15, slide: repositionTooltip, stop: repositionTooltip });
-    $("#slider .ui-slider-handle:first").tooltip( {title: $("#slider").slider("value"), trigger: "manual"}).tooltip("show");
+//////// DOCUMENT READY FUNCTION STARTS HERE
 
 
 
 
 
 $( document ).ready(function() {
-    
- 
+  
+
+// SLIDER
+
+   $(function() {
+      $( "#slider" ).slider({ max: 5,   
+       stop: function() {
+        console.log($( this).slider( "value" ));
+       } });
+     
+    });
+
+
+// DUMMY TEXT
+
 var titles=dummy.response.results;
+
+
+// PROGRESS BAR
 
 $('.bsLevel').append('<div class=""><div class="progress col-sm-6">'+
  ' <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%">'+
     '<span class="sr-only">80% Complete</span>'+
  ' </div></div> ' );  
+
+// DUMMY DATA ADD
 
 for (i=0;i<titles.length;i++){
 
@@ -226,9 +246,8 @@ $('.storyContainer').append('<p>'+titles[i].webTitle+ '</p>');
 
   
 
-
-
-rangy.init();
+  // INIT RANGY
+  rangy.init();
 
   // Enable buttons
   $('body').prepend(buttons);
@@ -237,10 +256,12 @@ rangy.init();
   var bs = getBullshit();
   applyBullshit(bs);
 
+
+  // RANGE GETTER 
   // ClassApplier is the name for the module in 1.3. CssClassApplier is for 1.2 and earlier.
   var classApplierModule = rangy.modules.ClassApplier || rangy.modules.CssClassApplier;
 
-      var sel;
+  var sel;
   // Next line is pure paranoia: it will only return false if the browser has no support for ranges,
   // selections or TextRanges. Even IE 5 would pass this test.
   if (rangy.supported && classApplierModule && classApplierModule.supported) {
@@ -256,6 +277,8 @@ rangy.init();
       }
     });
 
+
+    // ADD CSS CLASS TO SELECTION
     bsApplier = rangy.createCssClassApplier("bsSelection", {
       elementTagName: "span",
       elementProperties: {
@@ -264,17 +287,20 @@ rangy.init();
 
     });
 
-
     var bsButton = $('#bsButton').get(0);
     bsButton.disabled = false;
 
+
+    // GET THE PARENT AND OFFSET VALUES
     bsButton.ontouchstart = bsButton.onmousedown = function() {
        var sel = rangy.getSelection();
        var whosYourDaddy = sel.anchorNode.parentNode;
-        console.log(whosYourDaddy);
+        //console.log(whosYourDaddy);
 
        var offset= (sel.anchorOffset);
        var endOffset = (sel.focusOffset);
+
+  // NORMALIZE OFFSET DEPENDING ON THE USER'S SELECTION (right to left vs left to right)
 
        if(offset>endOffset){
         var rep=offset;
@@ -284,6 +310,7 @@ rangy.init();
        console.log(offset, endOffset);
 
 
+    // SEND REQUEST TO THE SERVER
 
       var hash = crc32(sel.anchorNode.parentNode.innerHTML);
      //console.log(hash);
@@ -311,10 +338,12 @@ rangy.init();
 
   }
 
-$('#allSelection').on('click', function(){
-  $( '.bsSelection' ).each(function( index ) {
-  console.log( index + ": " + $( this ).text() );
-});
+
+
+    $('#allSelection').on('click', function(){
+      $( '.bsSelection' ).each(function( index ) {
+      console.log( index + ": " + $( this ).text() );
+    });
 
 })
 

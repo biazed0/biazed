@@ -1,10 +1,31 @@
+#top{
+	height: 80px;
+	background-color: #BBB;
+}
+
+
+.navbar-brand{
+	padding:5px;
+}
+.right-nav
+{
+	float:right;
+	right:0px;
+}
+
+a{
+	text-decoration: none;
+	color: #333;
+}
+
 #buttons {
+	margin-top:60px;
     right: 10px;
     position: fixed;
     border: solid black 1px;
     background-color: #BBB;
     padding: 5px;
-    width: 300px;
+    
 }
 
 .selectedString
@@ -14,16 +35,16 @@
 
 .bs {
     background-color: lightgoldenrodyellow;
-   
+
 }
 
 #buttons
 {position: fixed;
 top:50px;}
 
-
-#slider {
-  width: 500px;
+.mainc
+{
+	margin-top:70px;
 }
 
 .scontainer {
@@ -39,8 +60,8 @@ top:50px;}
 padding-bottom: 50px;
 }
 
-.col-md-6 .progress{
-	padding:none;
+.col-sm-6 {
+	padding:0px;
 	float:none;}
 
 .skipper{
@@ -49,4 +70,33 @@ padding-bottom: 50px;
 
 #bsl{
 	float:left;
+}
+
+#sliderContainer
+{
+	padding-left: 10px;
+	margin-top: 20px;
+	height: 50px;
+
+}
+
+#slider {
+	margin-top: 10px;
+}
+
+#ratingButton{
+	margin-left: 20px;
+	
+
+}
+ 
+p#bs1{
+	    margin-left: 16px;
+
+}
+
+#logoimg{
+	 
+	width: 150px;
+
 }
